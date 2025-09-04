@@ -1,36 +1,64 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <title>AR Geraardsbergen Historie</title>
-  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-  <style> body { margin:0; overflow:hidden; } .info{position:absolute;bottom:10px;width:100%;text-align:center;color:white;font-family:sans-serif;} </style>
-</head>
-<body>
-  <a-scene embedded arjs='trackingMethod: best;'>
-    <!-- Administratief Centrum -->
-    <a-marker preset="kanji">
-      <a-box position="0 0.5 0" material="color: red"></a-box>
-      <a-text value="Administratief Centrum\nWeverijstraat 20\nStad & OCMW diensten samen" align="center" position="0 1 0" scale="2 2 2"></a-text>
-    </a-marker>
-    <!-- Politiegebouw -->
-    <a-marker preset="hiro">
-      <a-sphere position="0 0.5 0" material="color: blue"></a-sphere>
-      <a-text value="Politie Geraardsbergen\nDenderstraat 27\nHoofdcommissariaat" align="center" position="0 1 0" scale="2 2 2"></a-text>
-    </a-marker>
-    <!-- Ontmoetingscentrum De Lelie -->
-    <a-marker preset="barcode">
-      <a-cylinder position="0 0.5 0" material="color: green"></a-cylinder>
-      <a-text value="De Lelie\nJeugd- & kenniscentrum\nZakkaai" align="center" position="0 1 0" scale="2 2 2"></a-text>
-    </a-marker>
-    <!-- Brandweerkazerne -->
-    <a-marker preset="barcode2">
-      <a-cone position="0 0.5 0" material="color: orange"></a-cone>
-      <a-text value="Brandweer Geraardsbergen\nHulpverleningszone Zuid-Oost" align="center" position="0 1 0" scale="2 2 2"></a-text>
-    </a-marker>
-    <a-entity camera></a-entity>
-  </a-scene>
-  <div class="info">Scan de marker bij elke locatie voor info.</div>
-</body>
+  <head>
+    <meta charset="utf-8">
+    <title>AR.js Debug Template - Geraardsbergen</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <style>
+      body { margin: 0; overflow: hidden; }
+      #status {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        font-family: monospace;
+        padding: 1em;
+        font-size: 14px;
+        z-index: 10;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="status">🔍 Camera status: wordt gecontroleerd...</div>
+
+    <a-scene
+      embedded
+      arjs="sourceType: webcam;"
+      vr-mode-ui="enabled: false"
+      renderer="logarithmicDepthBuffer: true;"
+      device-orientation-permission-ui="enabled: true"
+    >
+      <!-- Marker met voorbeeldtekst -->
+      <a-marker preset="hiro">
+        <a-box position="0 0.5 0" color="red"></a-box>
+        <a-text value="Test: HIRO Marker" align="center" position="0 1 0" scale="2 2 2"></a-text>
+      </a-marker>
+      <a-entity camera></a-entity>
+    </a-scene>
+
+    <script>
+      const statusDiv = document.getElementById('status');
+
+      function updateStatus(message, isError = false) {
+        statusDiv.textContent = (isError ? '❌ FOUT: ' : '✅ ') + message;
+        if (isError) statusDiv.style.backgroundColor = '#800';
+        else statusDiv.style.backgroundColor = '#083';
+      }
+
+      // Check cameratoegang
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then((stream) => {
+          updateStatus("Camera werkt correct en is toegankelijk.");
+          stream.getTracks().forEach(track => track.stop()); // sluit testcamera
+        })
+        .catch((err) => {
+          updateStatus(`Camera-error: ${err.name} - ${err.message}`, true);
+          console.error("Camera error:", err.name, err.message);
+        });
+    </script>
+  </body>
 </html>
+
