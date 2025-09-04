@@ -1,23 +1,66 @@
-<script>
-  const statusDiv = document.getElementById('status');
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>AR.js Debug met eigen videostream</title>
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    #status {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      font-family: monospace;
+      padding: 1em;
+      font-size: 14px;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <div id="status">🔍 Camera wordt gestart...</div>
+  <video id="user-video" autoplay playsinline style="display:none;"></video>
 
-  function updateStatus(message, isError = false) {
-    statusDiv.textContent = (isError ? '❌ FOUT: ' : '✅ ') + message;
-    statusDiv.style.backgroundColor = isError ? '#800' : '#083';
-  }
+  <a-scene
+    embedded
+    arjs="sourceType: video; sourceUrl: #user-video;"
+    vr-mode-ui="enabled: false"
+    renderer="logarithmicDepthBuffer: true;"
+    device-orientation-permission-ui="enabled: true"
+  >
+    <a-marker preset="hiro">
+      <a-box position="0 0.5 0" color="red"></a-box>
+      <a-text value="Test: HIRO marker" align="center" position="0 1 0" scale="2 2 2"></a-text>
+    </a-marker>
+    <a-entity camera></a-entity>
+  </a-scene>
 
-  // Vraag alleen toestemming, open GEEN stream
-  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(() => {
-        updateStatus("Camera is toegankelijk. AR wordt geladen...");
-        // Laat AR.js zelf de stream beheren
-      })
-      .catch((err) => {
+  <script>
+    const statusDiv = document.getElementById('status');
+    const video = document.getElementById('user-video');
+
+    function updateStatus(message, isError = false) {
+      statusDiv.textContent = (isError ? '❌ FOUT: ' : '✅ ') + message;
+      statusDiv.style.backgroundColor = isError ? '#800' : '#083';
+    }
+
+    async function startCameraThenAR() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        video.srcObject = stream;
+        await video.play();
+        updateStatus("Camera actief — AR starten...");
+      } catch (err) {
         updateStatus(`Camera-error: ${err.name} - ${err.message}`, true);
         console.error("Camera error:", err.name, err.message);
-      });
-  } else {
-    updateStatus("Deze browser ondersteunt geen camera-toegang.", true);
-  }
-</script>
+      }
+    }
+
+    window.addEventListener('load', startCameraThenAR);
+  </script>
+</body>
+</html>
